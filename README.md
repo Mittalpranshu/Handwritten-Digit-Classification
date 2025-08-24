@@ -6,7 +6,7 @@ The aim is to **train, evaluate, and compare** the performance of both models us
 ---
 
 ## 🚀 Project Overview
-- **Dataset**: [MNIST handwritten digits](http://yann.lecun.com/exdb/mnist/)  
+- **Dataset**: [MNIST handwritten digits](https://www.kaggle.com/datasets/hojjatk/mnist-dataset)  
 - **Models Implemented**: 
   - Fully Connected **ANN**
   - Convolutional **CNN**

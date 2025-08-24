@@ -1,0 +1,102 @@
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPooling2D
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.utils import to_categorical
+import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+
+# Step 1 — Load dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# Step 2 — Normalize
+x_train = x_train.astype("float32") / 255.0
+x_test  = x_test.astype("float32") / 255.0
+
+# Step 3 — Prepare for ANN
+x_train_ann = x_train.reshape((x_train.shape[0], -1))
+x_test_ann  = x_test.reshape((x_test.shape[0], -1))
+
+# Step 4 — Prepare for CNN
+x_train_cnn = x_train[..., None]
+x_test_cnn  = x_test[..., None]
+
+# Step 5 — One-hot encode labels
+y_train_cat = to_categorical(y_train, 10)
+y_test_cat  = to_categorical(y_test, 10)
+
+# Step 6 — ANN Model
+ann_model = Sequential([
+    Dense(128, activation='relu', input_shape=(784,)),
+    Dense(64, activation='relu'),
+    Dense(10, activation='softmax')
+])
+ann_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+history_ann = ann_model.fit(
+    x_train_ann, y_train_cat,
+    validation_data=(x_test_ann, y_test_cat),
+    epochs=5, batch_size=128, verbose=1
+)
+
+# Step 7 — CNN Model
+cnn_model = Sequential([
+    Conv2D(32, (3,3), activation='relu', input_shape=(28,28,1)),
+    MaxPooling2D((2,2)),
+    Conv2D(64, (3,3), activation='relu'),
+    MaxPooling2D((2,2)),
+    Flatten(),
+    Dense(64, activation='relu'),
+    Dense(10, activation='softmax')
+])
+cnn_model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+history_cnn = cnn_model.fit(
+    x_train_cnn, y_train_cat,
+    validation_data=(x_test_cnn, y_test_cat),
+    epochs=5, batch_size=128, verbose=1
+)
+
+# Step 8 — Accuracy comparison
+ann_acc = ann_model.evaluate(x_test_ann, y_test_cat, verbose=0)[1]
+cnn_acc = cnn_model.evaluate(x_test_cnn, y_test_cat, verbose=0)[1]
+print(f"\nANN Accuracy: {ann_acc:.4f}")
+print(f"CNN Accuracy: {cnn_acc:.4f}")
+
+# Step 9 — Plot accuracy curves
+plt.figure(figsize=(8,5))
+plt.plot(history_ann.history['val_accuracy'], label='ANN Validation Accuracy')
+plt.plot(history_cnn.history['val_accuracy'], label='CNN Validation Accuracy')
+plt.title("Validation Accuracy Comparison")
+plt.xlabel("Epochs")
+plt.ylabel("Accuracy")
+plt.legend()
+plt.show()
+
+# Step 10 — Confusion Matrices
+# ANN predictions
+y_pred_ann = np.argmax(ann_model.predict(x_test_ann), axis=1)
+cm_ann = confusion_matrix(y_test, y_pred_ann)
+
+# CNN predictions
+y_pred_cnn = np.argmax(cnn_model.predict(x_test_cnn), axis=1)
+cm_cnn = confusion_matrix(y_test, y_pred_cnn)
+
+# Plot confusion matrices
+plt.figure(figsize=(12,5))
+plt.subplot(1,2,1)
+sns.heatmap(cm_ann, annot=True, fmt="d", cmap="Blues")
+plt.title("ANN Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("True")
+
+plt.subplot(1,2,2)
+sns.heatmap(cm_cnn, annot=True, fmt="d", cmap="Greens")
+plt.title("CNN Confusion Matrix")
+plt.xlabel("Predicted")
+plt.ylabel("True")
+
+plt.tight_layout()
+plt.show()

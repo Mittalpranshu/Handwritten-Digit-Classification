@@ -67,10 +67,5 @@ The aim is to **train, evaluate, and compare** the performance of both models us
 
 ---
 
-## ⚡ Future Work
-- Hyperparameter tuning for improved performance.  
-- Experiment with **Dropout layers** to prevent overfitting.  
-- Extend to more complex datasets (CIFAR-10, Fashion-MNIST).  
 
----
 
